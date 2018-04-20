@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 # get node_modules
 COPY package*.json ./
-RUN npm i
+RUN npm i --production
 
 # bundle the app
 COPY . .
