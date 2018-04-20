@@ -16,6 +16,7 @@ services:
     build: ./process
     links:
       - mqapi
+      - elasticsearch
   mqapi:
     build: ./mq-api
     links:
