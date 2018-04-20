@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,17 +14,26 @@ namespace process
         private readonly ILogger _logger;
         private readonly IRedisQueueService _redis;
         private readonly IConfigurationRoot _configuration;
+        private readonly IFileProcessor _fileProcessor;
 
         public bool Processing { get; set; }
 
         public App(ILogger<App> logger,
             IConfigurationRoot configuration,
-            IRedisQueueService redis)
+            IRedisQueueService redis,
+            IFileProcessor fileProcessor)
         {
             _logger = logger;
             _redis = redis;
             _configuration = configuration;
+            _fileProcessor = fileProcessor;
         }
+
+        private string GetPath(string type, string filename)
+            => $@"{Path.Combine(
+                    _configuration["paths:base"],
+                    _configuration[$"paths:{type}"],
+                    filename/*.Replace(" ", @"\ ")*/)}"; // gotta escape the spaces in linux paths?
 
         public async Task Run()
         {
@@ -45,11 +55,35 @@ namespace process
                 var message = await _redis.ReceiveMessage(
                     _configuration["rsmq:queueName"]);
 
-                if(!string.IsNullOrWhiteSpace(message.Id))
+                if (!string.IsNullOrWhiteSpace(message.Id))
                 {
                     _logger.LogInformation($"Message found: {message.Id}");
 
                     // process it
+                    // TODO if we support multiple file types
+                    // we'll need a way to DI the correct processor
+                    // but for now...
+                    var fullPath = GetPath("queued", message.Message);
+
+                    var ext = Path.GetExtension(fullPath);
+
+                    if (!_configuration["fileExtensions"].Contains(ext)) // TODO split once multiple
+                    {
+                        _logger.LogInformation($"unsupported file type detected: {message.Message}");
+                        var newPath = GetPath("badtype", message.Message);
+                        File.Move(fullPath, newPath);
+                        _logger.LogInformation($"moved to: {newPath}");
+
+                        // TODO delete message
+                    }
+                    else
+                    {
+                        // TODO really processors should work on streams
+                        // so the ES bit is in App, and not recreated by every processor?
+                        await _fileProcessor.Process(fullPath);
+
+                        // TODO delete message when done
+                    }
                 }
                 // else no messages
 

@@ -7,6 +7,8 @@ using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Nest;
+using process.FileProcessors;
 using process.Services;
 using process.Types;
 
@@ -38,6 +40,11 @@ namespace process
             });
 
             services.AddTransient<IRedisQueueService, RedisQueueService>();
+            services.AddTransient<IElasticService, ElasticService>();
+            services.AddScoped(s => new ElasticClient(
+                new ConnectionSettings(
+                    new Uri(configuration["es:host"]))
+                    .DefaultIndex(configuration["es:index"])));
 
             // Add the App
             services.AddTransient<App>();
@@ -78,6 +85,10 @@ namespace process
             //        client.DefaultRequestHeaders.Accept.Add(
             //            new MediaTypeWithQualityHeaderValue("application/json"));
             //    });
+
+            // We can use the same keying technique above for FileProcessors
+            // though right now we only process CSVs
+            services.AddTransient<IFileProcessor, CsvProcessor>();
 
             autofac.Populate(services); //load the basic services into autofac's container
             return new AutofacServiceProvider(autofac.Build());
