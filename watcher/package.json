@@ -1,11 +1,18 @@
 {
   "name": "watcher",
   "version": "1.0.0",
+  "private": true,
   "description": "watches a folder, queues new files in redis and moves them elsewhere",
-  "main": "index.js",
   "scripts": {
+    "start": "node ./app/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Jonathan Couldridge <Jonathan.Couldridge@nottingham.ac.uk>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "gulp": "^4.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1"
+  }
 }
