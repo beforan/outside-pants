@@ -1,8 +1,8 @@
 {
-  "name": "bootstrap",
+  "name": "enqueue",
   "version": "1.0.0",
   "private": true,
-  "description": "accepts requests to bootstrap a run of the system",
+  "description": "polls a redis queue to trigger enumeration of files in a directory",
   "scripts": {
     "start": "node ./app/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
