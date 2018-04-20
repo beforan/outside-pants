@@ -4,10 +4,14 @@ services:
     build: ./boostrap
     ports:
       - "5000:5000"
+    links:
+      - redis
   # watcher:
   #   build: ./watcher-node
   #   # build: ./watcher-dotnet
   #   volumes:
   #     - ./data/drop:/var/watch
-  # redis:
-  #   image: "redis:alpine"
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "63799:6379"
