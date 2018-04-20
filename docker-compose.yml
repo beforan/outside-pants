@@ -10,15 +10,8 @@ services:
     build: ./enqueue
     links:
       - redis
-  # watcher:
-  #   build: ./watcher-node
-  #   # build: ./watcher-dotnet
-  #   volumes:
-  #     - ./data/drop:/var/watch
   mqapi:
     build: ./mq-api
-    ports:
-      - "8101:8101"
     links:
       - redis
   redis:
