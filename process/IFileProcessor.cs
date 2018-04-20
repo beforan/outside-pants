@@ -1,5 +1,5 @@
 namespace process {
-    public interface IProcessor {
+    public interface IFileProcessor {
         
     }
 }
