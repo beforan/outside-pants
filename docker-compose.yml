@@ -1,9 +1,13 @@
 version: '3'
 services:
-  watcher:
-    # build: ./watcher-node
-    build: ./watcher-dotnet
-    volumes:
-      - ./data/drop:/var/watch
+  bootstrap:
+    build: ./boostrap
+    ports:
+      - "5000:5000"
+  # watcher:
+  #   build: ./watcher-node
+  #   # build: ./watcher-dotnet
+  #   volumes:
+  #     - ./data/drop:/var/watch
   # redis:
   #   image: "redis:alpine"
