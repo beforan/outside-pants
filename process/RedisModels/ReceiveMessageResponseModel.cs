@@ -4,8 +4,8 @@
     {
         public string Id { get; set; }
         public string Message { get; set; }
-        public int rc { get; set; }
-        public int fr { get; set; }
-        public int sent { get; set; }
+        public long rc { get; set; }
+        public long fr { get; set; }
+        public long sent { get; set; }
     }
 }

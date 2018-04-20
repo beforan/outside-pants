@@ -1,12 +1,16 @@
 // add timestamps in front of log messages
 require("console-stamp")(console, "HH:MM:ss.l");
+
+// modules
 const redismq = require("rsmq");
 const fs = require("fs");
-var mv = require('mv');
-var path = require("path");
+const mv = require('mv');
+const path = require("path");
 
+// the message queue
 const rsmq = new redismq({ host: "redis", ns: "rsmq" });
 
+// actual value constants
 const queueName = "folderscan";
 const processQueue = "fileprocess";
 const paths = {
@@ -14,19 +18,31 @@ const paths = {
   queued: "/queued"
 };
 
+// busy flag
 let isRunning;
 
+// this is our actual main function really, we run it on an interval if we're not busy
+// sorry it's a mess
 const go = () =>
+  
+  // try and get a message from the queue
   rsmq.receiveMessage({ qname: queueName }, (err, message) => {
+    // if we fail, error out
+    // flag us as no longer busy so we can try again next interval
     if (err) {
       console.error(err);
       isRunning = false;
       return;
     }
 
+    // receiveMessage claimed to be successful
+    // ensure we got a valid message with an id
     if (message.id) {
       console.log("Message received.", message);
 
+      // do the work the message triggered!
+
+      // try get all the files in the directory
       fs.readdir(paths.base, (err, files) => {
         if (err) {
           console.error("Could not list the base work directory.", err);
@@ -35,9 +51,10 @@ const go = () =>
         }
 
         // prep this as a function so we can use it in callbacks
+        // this will one by one queue each filename into redis
+        // for workers to process
         const queueFiles = () => {
           files.forEach((file, index) => {
-            // Make one pass and make the file complete
             var fromPath = path.join(paths.base, file);
             var toPath = path.join(paths.base, paths.queued, file);
 
@@ -50,14 +67,13 @@ const go = () =>
               if (stat.isFile()) console.log("'%s' is a file.", fromPath);
               else if (stat.isDirectory()) {
                 console.log("'%s' is a directory.", fromPath);
-                return;
+                return; // don't care about dirs // TODO actually we do care about sub directories
               }
 
               // Queue it in redis
               const sendMessage = () => {
                 let error = false;
                 // try and send a message to the queue
-                // message content is irrelevant - the presence of a message triggers a scan
                 rsmq.sendMessage(
                   { qname: processQueue, message: file },
                   (err, r) => {
@@ -152,6 +168,8 @@ const go = () =>
     // }
     isRunning = false;
   });
+
+
 
 // set a repeating call of our actual work
 setInterval(() => {

@@ -6,6 +6,7 @@ using Autofac.Features.Indexed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using process.RedisModels;
 using process.Types;
 
 namespace process.Services
@@ -42,6 +43,30 @@ namespace process.Services
             return JsonConvert.DeserializeObject<dynamic>(
                 await response.Content.ReadAsStringAsync()).queues
                 .ToObject<List<string>>();
+        }
+
+        public async Task<ReceiveMessageResponseModel> ReceiveMessage(string queue)
+        {
+            var uriBuilder = new UriBuilder(
+                new Uri(_client.BaseAddress,
+                $"{_configuration["rsmq:messages"]}/{queue}"))
+            {
+                Query = $"vt={_configuration["rsmq:visibilityTimer"]}"
+            };
+
+            var response = await _client.SendAsync(
+                new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri));
+
+            if (!response.IsSuccessStatusCode) throw new HttpRequestException(
+                 JsonConvert.SerializeObject(new
+                 {
+                     Message = "Request to the Message Queue API failed.",
+                     Status = response.StatusCode,
+                     Content = await response.Content.ReadAsStringAsync()
+                 }));
+
+            return JsonConvert.DeserializeObject<ReceiveMessageResponseModel>(
+                await response.Content.ReadAsStringAsync());
         }
     }
 }
