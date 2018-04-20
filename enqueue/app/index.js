@@ -2,6 +2,7 @@
 require("console-stamp")(console, "HH:MM:ss.l");
 const redismq = require("rsmq");
 const fs = require("fs");
+var mv = require('mv');
 var path = require("path");
 
 const rsmq = new redismq({ host: "redis", ns: "rsmq" });
@@ -34,7 +35,7 @@ const go = () =>
         }
 
         // prep this as a function so we can use it in callbacks
-        const queueFiles = () =>
+        const queueFiles = () => {
           files.forEach((file, index) => {
             // Make one pass and make the file complete
             var fromPath = path.join(paths.base, file);
@@ -67,6 +68,19 @@ const go = () =>
                     }
                     if (r) {
                       console.log("Message sent. ID:", r);
+
+                      // move it
+                      mv(fromPath, toPath, error => {
+                        if (error) {
+                          console.error("File moving error.", error);
+                        } else {
+                          console.log(
+                            "Moved file '%s' to '%s'.",
+                            fromPath,
+                            toPath
+                          );
+                        }
+                      });
                     }
                   }
                 );
@@ -88,10 +102,6 @@ const go = () =>
                   rsmq.createQueue({ qname: processQueue }, (err, r) => {
                     if (err) {
                       console.error(err);
-                      res.writeHead(500, { "Content-Type": "text/plain" });
-                      res.end(
-                        `Error creating redis queue 'fileprocess': ${err}`
-                      );
                       error = true;
                       return;
                     }
@@ -110,21 +120,16 @@ const go = () =>
                 console.error("File moving error.", error);
                 return;
               }
-
-              // move it
-              fs.rename(fromPath, toPath, error => {
-                if (error) {
-                  console.error("File moving error.", error);
-                } else {
-                  console.log("Moved file '%s' to '%s'.", fromPath, toPath);
-                }
-              });
             });
+          });
 
-            // remove the message now we're done with it
-
+          // remove the message now we're done with it
+          rsmq.deleteMessage({ qname: queueName, id: message.id }, () => {
+            if (err) console.error(err);
+            else console.log(`Deleted completed message: ${message.id}`);
             isRunning = false;
           });
+        };
 
         // ensure the queued output dir exists before queueing the Files
         fs.access(
