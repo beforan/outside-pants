@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -13,10 +14,10 @@ namespace process
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            // Create service provider
-            ConfigureServices(new ServiceCollection())
+            // Create service provider, then immediately resolve our app and run it
+            await ConfigureServices(new ServiceCollection())
                 .GetService<App>().Run();
         }
 

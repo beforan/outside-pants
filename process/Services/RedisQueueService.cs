@@ -31,16 +31,17 @@ namespace process.Services
                 new HttpRequestMessage(HttpMethod.Get,
                     new Uri(_client.BaseAddress, _configuration["rsmq:queues"])));
 
-            if(!response.IsSuccessStatusCode) throw new HttpRequestException(
-                JsonConvert.SerializeObject(new
-                {
-                    Message = "Request to the Message Queue API failed.",
-                    Status = response.StatusCode,
-                    Content = await response.Content.ReadAsStringAsync()
-                }));
+            if (!response.IsSuccessStatusCode) throw new HttpRequestException(
+                 JsonConvert.SerializeObject(new
+                 {
+                     Message = "Request to the Message Queue API failed.",
+                     Status = response.StatusCode,
+                     Content = await response.Content.ReadAsStringAsync()
+                 }));
 
-            return JsonConvert.DeserializeObject<List<string>>(
-                await response.Content.ReadAsStringAsync());
+            return JsonConvert.DeserializeObject<dynamic>(
+                await response.Content.ReadAsStringAsync()).queues
+                .ToObject<List<string>>();
         }
     }
 }
