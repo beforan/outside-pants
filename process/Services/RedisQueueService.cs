@@ -16,7 +16,7 @@ namespace process.Services
         private readonly IConfigurationRoot _configuration;
         private readonly HttpClient _client;
 
-        public RedisQueueService(ILogger logger,
+        public RedisQueueService(ILogger<RedisQueueService> logger,
             IConfigurationRoot configuration,
             IIndex<HttpClients, HttpClient> clients)
         {

@@ -6,6 +6,7 @@ using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using process.Services;
 using process.Types;
 
 namespace process
@@ -34,6 +35,8 @@ namespace process
                 builder.AddConfiguration(configuration.GetSection("Logging"));
                 builder.AddConsole();
             });
+
+            services.AddTransient<IRedisQueueService, RedisQueueService>();
 
             // Add the App
             services.AddTransient<App>();

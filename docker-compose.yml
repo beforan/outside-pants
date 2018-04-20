@@ -21,6 +21,7 @@ services:
     build: ./mq-api
     links:
       - redis
+    # ports: 8101
   redis:
     image: redis:alpine
     ports:
