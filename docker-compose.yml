@@ -8,6 +8,8 @@ services:
       - redis
   enqueue:
     build: ./enqueue
+    volumes:
+      - ./data/drop:/var/work
     links:
       - redis
   process:
