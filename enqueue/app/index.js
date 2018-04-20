@@ -120,6 +120,9 @@ const go = () =>
                 }
               });
             });
+
+            // remove the message now we're done with it
+
             isRunning = false;
           });
 
@@ -130,7 +133,7 @@ const go = () =>
           err => {
             if (err) {
               console.log("queued directory doesn't exist yet, creating");
-              fs.mkdirSync(path.join(paths.base, paths.queued), queueFiles);
+              fs.mkdir(path.join(paths.base, paths.queued), queueFiles);
             } else {
               console.log("queued directory already exists");
               queueFiles();
@@ -138,16 +141,16 @@ const go = () =>
           }
         );
       });
-    } else {
-      console.log("No messages currently in 'folderscan' queue...");
     }
+    // else {
+    //   console.log("No messages currently in 'folderscan' queue...");
+    // }
     isRunning = false;
   });
 
 // set a repeating call of our actual work
 setInterval(() => {
   if (!isRunning) {
-    console.log("polling 'folderscan' redis queue...");
     isRunning = true;
     go();
   }
