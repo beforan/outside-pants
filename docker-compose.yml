@@ -15,6 +15,12 @@ services:
   #   # build: ./watcher-dotnet
   #   volumes:
   #     - ./data/drop:/var/watch
+  mqapi:
+    build: ./mq-api
+    ports:
+      - "8101:8101"
+    links:
+      - redis
   redis:
     image: "redis:alpine"
     ports:
