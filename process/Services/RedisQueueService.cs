@@ -10,7 +10,7 @@ using process.Types;
 
 namespace process.Services
 {
-    class RedisQueueService
+    public class RedisQueueService : IRedisQueueService
     {
         private readonly ILogger _logger;
         private readonly IConfigurationRoot _configuration;

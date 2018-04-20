@@ -21,6 +21,10 @@ services:
     links:
       - redis
   redis:
-    image: "redis:alpine"
+    image: redis:alpine
     ports:
       - "63799:6379"
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
+    ports:
+      - "9200:9200"
