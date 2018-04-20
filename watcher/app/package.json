@@ -1,0 +1,11 @@
+{
+  "name": "watcher",
+  "version": "1.0.0",
+  "description": "watches a folder, queues new files in redis and moves them elsewhere",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jonathan Couldridge <Jonathan.Couldridge@nottingham.ac.uk>",
+  "license": "MIT"
+}
