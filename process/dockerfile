@@ -1,0 +1,15 @@
+FROM microsoft/dotnet:sdk as build
+
+WORKDIR /app
+
+COPY . .
+
+RUN dotnet publish -c Release -o ./publish
+
+FROM microsoft/dotnet
+
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+ENTRYPOINT [ "dotnet", "/app/process.dll" ]
