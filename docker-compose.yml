@@ -1,7 +1,8 @@
 version: '3'
 services:
   watcher:
-    build: ./watcher
+    # build: ./watcher-node
+    build: ./watcher-dotnet
     volumes:
       - ./data/drop:/var/watch
   # redis:
