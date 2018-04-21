@@ -26,22 +26,36 @@ namespace process
 
             // locate services needed by Main
             var app = services.GetService<App>();
+            var logger = services.GetService<ILogger<Program>>();
             var config = services.GetService<IConfigurationRoot>();
 
             // this entrypoint works essentially the same as the enqueue node app
             void Run()
             {
-                if (Busy) return;
+                if (Busy)
+                {
+                    logger.LogDebug("Still busy...");
+                    return;
+                }
 
+                logger.LogDebug("Flagging busy...");
                 Busy = true;
-                Task.Run(app.Run).ContinueWith(_ => Busy = false);
+                Task.Run(app.Run).Wait();
+                logger.LogDebug("No longer busy...");
+                Busy = false;
             }
 
             // run at startup
             Run();
 
             // then run it every n seconds unless it's busy
-            new Timer(_ => Run(), null, 0, config.GetValue<int>("intervalMs"));
+            new Timer(
+                _ =>
+                {
+                    logger.LogDebug("Tick");
+                    Run();
+                },
+                null, 0, config.GetValue<int>("intervalMs"));
 
             while (true) Thread.Sleep(1); // Main thread just sleeps while timer ticks
         }

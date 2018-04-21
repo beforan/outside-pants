@@ -57,6 +57,8 @@ namespace process
                     _logger.LogWarning($"'{queue}' queue not present");
                     return false;
                 }
+
+                return true;
             }
             catch (HttpRequestException e) // RSMQ didn't respond as expected, quit and try again
             {
@@ -64,7 +66,6 @@ namespace process
                 _logger.LogError(e.Message);
                 return false;
             }
-            return true;
         }
 
         public async Task Run()

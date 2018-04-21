@@ -30,7 +30,7 @@ namespace process.FileProcessors
 
             using (var tr = File.OpenText(filepath))
             {
-                var csv = new CsvParser(tr);
+                var csv = new CsvParser(tr); // TODO fix multiline field data?
 
                 // Parse the header row
                 var headers = await csv.ReadAsync();
@@ -54,7 +54,7 @@ namespace process.FileProcessors
                     var json = new JObject();
                     for (var i = 0; i < headers.Length; i++)
                     {
-                        json.Add(headers[i], JToken.Parse($"\"{row[i]}\"")); // TODO make better
+                        json.Add(headers[i], JToken.Parse($"\"{row[i]}\"")); // TODO make better e.g. escaping?
                     }
 
                     // Send to ES!
