@@ -24,11 +24,11 @@ namespace process.FileProcessors
             _client = client;
         }
 
-        public async Task Process(string filename)
+        public async Task Process(string filepath)
         {
-            _logger.LogInformation($"Processing {filename}");
+            _logger.LogInformation($"Processing {filepath}");
 
-            using (var tr = File.OpenText(filename))
+            using (var tr = File.OpenText(filepath))
             {
                 var csv = new CsvParser(tr);
 
@@ -46,24 +46,25 @@ namespace process.FileProcessors
 
                     if (row == null)
                     {
-                        _logger.LogInformation($"EOF {filename}");
+                        _logger.LogInformation($"EOF {filepath}");
                         break;
                     }
 
                     // build a json object to send to ES
                     var json = new JObject();
-                    for(var i = 0; i < headers.Length; i++)
+                    for (var i = 0; i < headers.Length; i++)
                     {
-                        json.Add(headers[i], JToken.Parse($"\"{row[i]}\""));
+                        json.Add(headers[i], JToken.Parse($"\"{row[i]}\"")); // TODO make better
                     }
 
                     // Send to ES!
-                    var response = await _client.LowLevel.IndexAsync<StringResponse>(
-                        _configuration["es:index"],
-                        _configuration["es:type"],
-                        json.ToString());
+                    var response = await _client.LowLevel
+                        .IndexAsync<StringResponse>(
+                            _configuration["es:index"],
+                            _configuration["es:type"],
+                            json.ToString());
 
-                    if(!response.Success)
+                    if (!response.Success)
                     {
                         _logger.LogError(response.Body);
                     }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using process.Services;
+using process.Types;
 
 namespace process
 {
@@ -29,50 +30,78 @@ namespace process
             _fileProcessor = fileProcessor;
         }
 
-        private string GetPath(string type, string filename)
-            => $@"{Path.Combine(
-                    _configuration["paths:base"],
-                    _configuration[$"paths:{type}"],
-                    filename)}";
+        private string BuildPath(string type = null) =>
+            string.IsNullOrWhiteSpace(type) || type == "base"
+                ? _configuration["paths:Base"]
+                : Path.Combine(
+                    _configuration["paths:Base"],
+                    _configuration[$"paths:{type}"]);
+        private string BuildPath(PathTypes type = PathTypes.Base)
+            => BuildPath(type.ToString());
+
+        private string ChangePathType(string oldType, string newType, string path)
+            => path.Replace(BuildPath(oldType), BuildPath(newType));
+
+        private string ChangePathType(PathTypes oldType, PathTypes newType, string path)
+            => ChangePathType(oldType.ToString(), newType.ToString(), path);
+
+        private async Task<bool> QueueReady(string queue)
+        {
+            try
+            {
+                var queues = await _redis.ListQueues();
+
+                // if our queue isn't there, just return and poll again with the timer
+                if (!queues.Contains(queue))
+                {
+                    _logger.LogWarning($"'{queue}' queue not present");
+                    return false;
+                }
+            }
+            catch (HttpRequestException e) // RSMQ didn't respond as expected, quit and try again
+            {
+                _logger.LogWarning("mqapi didn't respond as expected.");
+                _logger.LogError(e.Message);
+                return false;
+            }
+            return true;
+        }
 
         public async Task Run()
         {
-            _logger.LogInformation("doing work");
-            return;
+            _logger.LogDebug("App.Run");
 
-            // First keep trying to get the queue out of the mq api
-            // to ensure it's up
-            // and then to keep polling for the queue to exist
-            await MessageQueueAvailable();
+            var processQueue = _configuration["rsmq:queueName"];
 
-            // Once the service api is up and the queue is present
-            // we need to poll the queue or process messages
-            while (true)
+            // Ensure the Message Queue API is up, and the queue we want exists
+            if (!await QueueReady(processQueue)) return;
+
+            // now continue with our work
+            _logger.LogDebug("Checking for messages...");
+
+            try
             {
-                _logger.LogInformation("Checking for messages...");
-
-                Processing = true;
-
-                var message = await _redis.ReceiveMessage(
-                    _configuration["rsmq:queueName"]);
+                var message = await _redis.ReceiveMessage(processQueue);
 
                 if (!string.IsNullOrWhiteSpace(message.Id))
                 {
-                    _logger.LogInformation($"Message found: {message.Id}");
+                    _logger.LogInformation($"Message received: {message.Id}");
 
                     // process it
                     // TODO if we support multiple file types
                     // we'll need a way to DI the correct processor
-                    // but for now...
-                    var fullPath = GetPath("queued", message.Message);
+                    // but for now just CSV so it's ok
 
-                    var ext = Path.GetExtension(fullPath);
+                    var ext = Path.GetExtension(message.Message);
 
-                    if (!_configuration["fileExtensions"].Contains(ext)) // TODO split once multiple
+                    if (!_configuration["fileExtensions"].Contains(ext)) // TODO split once multiple extensions are supported
                     {
                         _logger.LogInformation($"unsupported file type detected: {message.Message}");
-                        var newPath = GetPath("badtype", message.Message);
-                        File.Move(fullPath, newPath);
+                        var newPath = ChangePathType(
+                            PathTypes.Queued,
+                            PathTypes.BadType,
+                            message.Message);
+                        File.Move(message.Message, newPath);
                         _logger.LogInformation($"moved to: {newPath}");
 
                         // TODO delete message
@@ -81,36 +110,15 @@ namespace process
                     {
                         // TODO really processors should work on streams
                         // so the ES bit is in App, and not recreated by every processor?
-                        await _fileProcessor.Process(fullPath);
+                        await _fileProcessor.Process(message.Message);
 
                         // TODO delete message when done
                     }
                 }
-                // else no messages
-
-                Processing = false;
-
-                Thread.Sleep(10000); // wait to poll again
             }
-        }
-
-        private async Task MessageQueueAvailable()
-        {
-            var mqUp = false;
-            while (!mqUp)
+            catch (Exception e)
             {
-                try
-                {
-                    var queues = await _redis.ListQueues();
-                    mqUp = queues.Contains(_configuration["rsmq:queueName"]);
-                }
-                catch (HttpRequestException e) // TODO filter harder
-                {
-                    _logger.LogError(e.Message);
-                    _logger.LogError(e.InnerException?.Message ?? "no inner exception");
-                }
-
-                if (!mqUp) Thread.Sleep(3000); // wait to retry
+                _logger.LogError(e.Message);
             }
         }
     }
