@@ -5,5 +5,6 @@ module.exports = {
         base: "/var/work",
         queued: "/queued",
         ignore: ["queued", "badtype", "processed"]
-    }
+    },
+    intervalMs: 10000
 }
