@@ -33,11 +33,12 @@ namespace process
             => $@"{Path.Combine(
                     _configuration["paths:base"],
                     _configuration[$"paths:{type}"],
-                    filename/*.Replace(" ", @"\ ")*/)}"; // gotta escape the spaces in linux paths?
+                    filename)}";
 
         public async Task Run()
         {
-            _logger.LogInformation("App started");
+            _logger.LogInformation("doing work");
+            return;
 
             // First keep trying to get the queue out of the mq api
             // to ensure it's up

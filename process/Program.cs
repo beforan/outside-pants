@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
@@ -16,11 +17,33 @@ namespace process
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static bool Busy { get; set; }
+
+        static void Main(string[] args)
         {
-            // Create service provider, then immediately resolve our app and run it
-            await ConfigureServices(new ServiceCollection())
-                .GetService<App>().Run();
+            // Create service provider
+            var services = ConfigureServices(new ServiceCollection());
+
+            // locate services needed by Main
+            var app = services.GetService<App>();
+            var config = services.GetService<IConfigurationRoot>();
+
+            // this entrypoint works essentially the same as the enqueue node app
+            void Run()
+            {
+                if (Busy) return;
+
+                Busy = true;
+                Task.Run(app.Run).ContinueWith(_ => Busy = false);
+            }
+
+            // run at startup
+            Run();
+
+            // then run it every n seconds unless it's busy
+            new Timer(_ => Run(), null, 0, config.GetValue<int>("intervalMs"));
+
+            while (true) Thread.Sleep(1); // Main thread just sleeps while timer ticks
         }
 
         private static IServiceProvider ConfigureServices(IServiceCollection services)
@@ -74,6 +97,8 @@ namespace process
                     client.DefaultRequestHeaders.Accept.Add(
                         new MediaTypeWithQualityHeaderValue("application/json"));
                 });
+
+            // right now we use NEST, not the ES REST API directly
             //autofac.RegisterType<HttpClient>()
             //    .Keyed<HttpClient>(HttpClients.ElasticSearch)
             //    .OnActivating(x =>
