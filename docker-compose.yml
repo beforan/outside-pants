@@ -12,27 +12,27 @@ services:
       - ./data/drop:/var/work
     links:
       - redis
-  process:
-    build: ./process
-    volumes:
-      - ./data/drop:/var/work
-    links:
-      - mqapi
-      - elasticsearch
-  mqapi:
-    build: ./mq-api
-    links:
-      - redis
+  # process:
+  #   build: ./process
+  #   volumes:
+  #     - ./data/drop:/var/work
+  #   links:
+  #     - mqapi
+  #     - elasticsearch
+  # mqapi:
+  #   build: ./mq-api
+  #   links:
+  #     - redis
     # ports: 8101
   redis:
     image: redis:alpine
     ports:
       - "63799:6379"
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
-    ports:
-      - "9200:9200"
-  kibana:
-    image: docker.elastic.co/kibana/kibana:6.2.4
-    ports:
-      - "5601:5601"
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
+  #   ports:
+  #     - "9200:9200"
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:6.2.4
+  #   ports:
+  #     - "5601:5601"
