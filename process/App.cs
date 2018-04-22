@@ -68,16 +68,22 @@ namespace process
             var processQueue = _configuration["rsmq:queueName"];
 
             // Check Elastic Search status
-            _logger.LogDebug("checking Elastic Search status");
-            var response = await _elastic.ClusterHealthAsync(
-                new ClusterHealthRequest
-                {
-                    WaitForStatus = WaitForStatus.Yellow
-                });
-
-            if (response.TimedOut || !response.IsValid)
+            try
             {
-                _logger.LogInformation("Elastic Search server doesn't seem to be available");
+                _logger.LogDebug("checking Elastic Search status");
+                var response = await _elastic.ClusterHealthAsync(
+                    new ClusterHealthRequest
+                    {
+                        WaitForStatus = WaitForStatus.Yellow
+                    });
+
+                if (response.TimedOut || !response.IsValid)
+                    throw new ApplicationException();
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning("Elastic Search server doesn't seem to be available");
+                _logger.LogError(e.Message);
                 return _configuration.GetValue<int>("intervalMs"); // wait before re-polling
             }
 
