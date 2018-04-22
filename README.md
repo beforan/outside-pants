@@ -5,6 +5,7 @@
 - optionally `--scale process=<n>` where `<n>` is a sensible number
 - Ensure the logging stack is up before initiating processing!
     - logspout will crash out because logstash isn't up
+    - sometimes elasticsearch needs some hand holding (restarting) to come up ok, not sure why...
     - once es and kibana are up, logstash will finally roll in
     - once logstash is listening, restart logspout
 - POST to `localhost:5000/initiate` to trigger an enumeration of files in the folder you mount to `/var/work` (see the compose file)

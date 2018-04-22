@@ -102,6 +102,11 @@ namespace process
                         await _fileProcessor.Process(message.Message);
                     }
                 }
+                else
+                {
+                    // no message right now
+                    return _configuration.GetValue<int>("intervalMs"); // wait before re-polling
+                }
             }
             catch (Exception e)
             {
@@ -119,7 +124,7 @@ namespace process
                 _logger.LogError(e.Message);
             }
 
-            return 0; //re-poll immediately after work
+            return 0; //re-poll immediately after actual work
         }
     }
 }
