@@ -19,6 +19,7 @@ const sleep = ms => new Promise(resolve => {
 
 // queue files in subdirectories forever
 const recursiveFileQueue = async dir => {
+    console.log(`enumerating path ${dir}`);
     const files = await readdirAsync(dir);
 
     // actually queue the files
