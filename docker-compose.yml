@@ -26,6 +26,8 @@ services:
     #ports: 8101
   redis:
     image: redis:alpine
+    environment:
+      LOGSPOUT: ignore
     ports:
       - "63799:6379"
   elasticsearch:
@@ -36,5 +38,23 @@ services:
       - ./data/es:/usr/share/elasticsearch/data
   kibana:
     image: docker.elastic.co/kibana/kibana:6.2.4
+    environment:
+      LOGSPOUT: ignore
     ports:
       - "5601:5601"
+  logspout:
+    build: ./logspout
+    environment:
+      ROUTE_URIS: logstash+tcp://logstash:5001
+      LOGSPOUT: ignore
+    links:
+      - logstash
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  logstash:
+    image: docker.elastic.co/logstash/logstash:6.2.4
+    environment:
+      LOGSPOUT: ignore
+    volumes:
+      # - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/:/usr/share/logstash/pipeline/

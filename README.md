@@ -1,8 +1,12 @@
 # Wat?
 
+- If on Windows, set the environment variable: `COMPOSE_CONVERT_WINDOWS_PATHS=1` so `/var/run/docker.sock` works.
 - `docker-compose up`
 - optionally `--scale process=<n>` where `<n>` is a sensible number
-- Preferably wait for ElasticSearch and Kibana to be fully initialised (they take the longest)
+- Ensure the logging stack is up before initiating processing!
+    - logspout will crash out because logstash isn't up
+    - once es and kibana are up, logstash will finally roll in
+    - once logstash is listening, restart logspout
 - POST to `localhost:5000/initiate` to trigger an enumeration of files in the folder you mount to `/var/work` (see the compose file)
 
 That will start everything running.
