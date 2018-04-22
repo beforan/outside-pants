@@ -25,7 +25,7 @@ const recursiveFileQueue = async dir => {
     // actually queue the files
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        
+
         const fromPath = path.join(dir, file);
         const toPathDirOnly = path.join(
             paths.base,
@@ -34,7 +34,7 @@ const recursiveFileQueue = async dir => {
         const toPath = path.join(toPathDirOnly, file); // add the file on the end
 
         // ensure the target directory exists
-        mkdirpAsync(toPathDirOnly);
+        await mkdirpAsync(toPathDirOnly);
 
         const stat = await statAsync(fromPath);
         if (stat.isFile()) {
