@@ -23,7 +23,9 @@ const recursiveFileQueue = async dir => {
     const files = await readdirAsync(dir);
 
     // actually queue the files
-    files.forEach(async file => {
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
         const fromPath = path.join(dir, file);
         const toPathDirOnly = path.join(
             paths.base,
@@ -48,21 +50,18 @@ const recursiveFileQueue = async dir => {
 
             // then queue it
             const response = await sendMessageAsync({ qname: processQueue, message: toPath });
-            // if (response) console.log("Message sent. ID:", response);
+            if (response) console.log("Message sent. ID:", response);
         } else if (stat.isDirectory()) {
             // console.log("'%s' is a directory.", fromPath);
-            if (paths.ignore.includes(file));
-            // console.log(`'${file}' is on the ignore list, skipping`);
+            if (paths.ignore.includes(file))
+                console.log(`'${file}' is on the ignore list, skipping`);
             else {
                 await recursiveFileQueue(fromPath);
-
-                // artificially delay the return to ease the disk access?
-                await sleep(10000);
             }
 
             // TODO  delete the directory? or just leave it...
         }
-    });
+    }
 }
 
 module.exports = recursiveFileQueue;
