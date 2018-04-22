@@ -37,10 +37,10 @@ namespace process
                 if (Busy) return;
 
                 Busy = true;
-                await app.Run();
+                var delay = await app.Run();
                 Busy = false;
 
-                Thread.Sleep(Configuration.GetValue<int>("intervalMs"));
+                Thread.Sleep(delay);
             }
         }
 

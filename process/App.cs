@@ -53,7 +53,8 @@ namespace process
             }
         }
 
-        public async Task Run()
+        // returns a wait time so that certain actions cause a longer delay before polling again
+        public async Task<int> Run()
         {
             string messageId = null; // useful to have in scope here so we can use it in exception catching
 
@@ -62,7 +63,8 @@ namespace process
             var processQueue = _configuration["rsmq:queueName"];
 
             // Ensure the Message Queue API is up, and the queue we want exists
-            if (!await QueueReady(processQueue)) return;
+            if (!await QueueReady(processQueue))
+                return _configuration.GetValue<int>("intervalMs"); // wait before re-polling
 
             // now continue with our work
             _logger.LogDebug("Checking for messages...");
@@ -116,6 +118,8 @@ namespace process
             {
                 _logger.LogError(e.Message);
             }
+
+            return 0; //re-poll immediately after work
         }
     }
 }
