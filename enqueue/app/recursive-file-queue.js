@@ -12,6 +12,11 @@ const {
 
 const { processQueue, paths } = require('./const');
 
+// this is dirty
+const sleep = ms => new Promise(resolve => {
+    setTimeout(resolve, ms)
+});
+
 // queue files in subdirectories forever
 const recursiveFileQueue = async dir => {
     const files = await readdirAsync(dir);
@@ -45,9 +50,15 @@ const recursiveFileQueue = async dir => {
             // if (response) console.log("Message sent. ID:", response);
         } else if (stat.isDirectory()) {
             // console.log("'%s' is a directory.", fromPath);
-            if (paths.ignore.includes(file)) ;
-                // console.log(`'${file}' is on the ignore list, skipping`);
-            else await recursiveFileQueue(fromPath);
+            if (paths.ignore.includes(file));
+            // console.log(`'${file}' is on the ignore list, skipping`);
+            else {
+                await recursiveFileQueue(fromPath);
+
+                // artificially delay the return to ease the disk access?
+                await sleep(10000);
+            }
+
             // TODO  delete the directory? or just leave it...
         }
     });
