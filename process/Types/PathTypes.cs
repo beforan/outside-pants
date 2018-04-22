@@ -4,7 +4,8 @@
     {
         Base,
         Queued,
-        Processed,
-        BadType
+        Complete,
+        BadType,
+        Incomplete
     }
 }

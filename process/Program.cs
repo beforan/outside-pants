@@ -15,8 +15,10 @@ using process.Types;
 
 namespace process
 {
-    class Program
+    public class Program
     {
+        public static IConfigurationRoot Configuration { get; private set; }
+
         static bool Busy { get; set; }
 
         static async Task Main(string[] args)
@@ -27,7 +29,6 @@ namespace process
             // locate services needed by Main
             var app = services.GetService<App>();
             var logger = services.GetService<ILogger<Program>>();
-            var config = services.GetService<IConfigurationRoot>();
 
             // this entrypoint works essentially the same as the enqueue node app
 
@@ -39,23 +40,23 @@ namespace process
                 await app.Run();
                 Busy = false;
 
-                Thread.Sleep(config.GetValue<int>("intervalMs"));
+                Thread.Sleep(Configuration.GetValue<int>("intervalMs"));
             }
         }
 
         private static IServiceProvider ConfigureServices(IServiceCollection services)
         {
             // Build configuration
-            var configuration = new ConfigurationBuilder()
+            Configuration = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", false)
                 .Build();
 
             // Add services
-            services.AddSingleton(configuration);
+            services.AddSingleton(Configuration);
             services.AddLogging(builder =>
             {
-                builder.AddConfiguration(configuration.GetSection("Logging"));
+                builder.AddConfiguration(Configuration.GetSection("Logging"));
                 builder.AddConsole();
             });
 
@@ -63,8 +64,8 @@ namespace process
             services.AddTransient<IElasticService, ElasticService>();
             services.AddScoped(s => new ElasticClient(
                 new ConnectionSettings(
-                    new Uri(configuration["es:host"]))
-                    .DefaultIndex(configuration["es:index"])));
+                    new Uri(Configuration["es:host"]))
+                    .DefaultIndex(Configuration["es:index"])));
 
             // Add the App
             services.AddTransient<App>();
@@ -89,7 +90,7 @@ namespace process
                 .OnActivating(x =>
                 {
                     var client = x.Instance;
-                    client.BaseAddress = new Uri(configuration["rsmq:host"]);
+                    client.BaseAddress = new Uri(Configuration["rsmq:host"]);
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(
                         new MediaTypeWithQualityHeaderValue("application/json"));

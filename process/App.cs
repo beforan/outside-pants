@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -29,21 +29,6 @@ namespace process
             _configuration = configuration;
             _fileProcessor = fileProcessor;
         }
-
-        private string BuildPath(string type = null) =>
-            string.IsNullOrWhiteSpace(type) || type == "base"
-                ? _configuration["paths:Base"]
-                : Path.Combine(
-                    _configuration["paths:Base"],
-                    _configuration[$"paths:{type}"]);
-        private string BuildPath(PathTypes type = PathTypes.Base)
-            => BuildPath(type.ToString());
-
-        private string ChangePathType(string oldType, string newType, string path)
-            => path.Replace(BuildPath(oldType), BuildPath(newType));
-
-        private string ChangePathType(PathTypes oldType, PathTypes newType, string path)
-            => ChangePathType(oldType.ToString(), newType.ToString(), path);
 
         private async Task<bool> QueueReady(string queue)
         {
@@ -95,15 +80,13 @@ namespace process
 
                     var ext = Path.GetExtension(message.Message);
 
-                    if (!_configuration["fileExtensions"].Contains(ext)) // TODO split once multiple extensions are supported
+                    if (Array.FindIndex(
+                        _configuration["fileExtensions"].Split(),
+                        x => x == ext) < 0)
                     {
                         _logger.LogInformation($"unsupported file type detected: {message.Message}");
-                        var newPath = ChangePathType(
-                            PathTypes.Queued,
-                            PathTypes.BadType,
-                            message.Message);
-                        File.Move(message.Message, newPath);
-                        _logger.LogInformation($"moved to: {newPath}");
+
+                        Utils.MoveFile(PathTypes.Queued, PathTypes.BadType, message.Message, _logger);
 
                         // TODO delete message
                     }
