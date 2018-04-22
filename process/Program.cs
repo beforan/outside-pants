@@ -19,7 +19,7 @@ namespace process
     {
         static bool Busy { get; set; }
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             // Create service provider
             var services = ConfigureServices(new ServiceCollection());
@@ -30,34 +30,17 @@ namespace process
             var config = services.GetService<IConfigurationRoot>();
 
             // this entrypoint works essentially the same as the enqueue node app
-            void Run()
+
+            while (true)
             {
-                if (Busy)
-                {
-                    logger.LogDebug("Still busy...");
-                    return;
-                }
+                if (Busy) return;
 
-                logger.LogDebug("Flagging busy...");
                 Busy = true;
-                Task.Run(app.Run).Wait();
-                logger.LogDebug("No longer busy...");
+                await app.Run();
                 Busy = false;
+
+                Thread.Sleep(config.GetValue<int>("intervalMs"));
             }
-
-            // run at startup
-            Run();
-
-            // then run it every n seconds unless it's busy
-            new Timer(
-                _ =>
-                {
-                    logger.LogDebug("Tick");
-                    Run();
-                },
-                null, 0, config.GetValue<int>("intervalMs"));
-
-            while (true) Thread.Sleep(1); // Main thread just sleeps while timer ticks
         }
 
         private static IServiceProvider ConfigureServices(IServiceCollection services)
