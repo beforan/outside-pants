@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Elasticsearch.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Nest;
 using process.Services;
 using process.Types;
 
@@ -16,18 +18,21 @@ namespace process
         private readonly IRedisQueueService _redis;
         private readonly IConfigurationRoot _configuration;
         private readonly IFileProcessor _fileProcessor;
+        private readonly ElasticClient _elastic;
 
         public bool Processing { get; set; }
 
         public App(ILogger<App> logger,
             IConfigurationRoot configuration,
             IRedisQueueService redis,
-            IFileProcessor fileProcessor)
+            IFileProcessor fileProcessor,
+            ElasticClient elastic)
         {
             _logger = logger;
             _redis = redis;
             _configuration = configuration;
             _fileProcessor = fileProcessor;
+            _elastic = elastic;
         }
 
         private async Task<bool> QueueReady(string queue)
@@ -61,6 +66,21 @@ namespace process
             _logger.LogDebug("App.Run");
 
             var processQueue = _configuration["rsmq:queueName"];
+
+            // Check Elastic Search status
+            _logger.LogDebug("checking Elastic Search status");
+            var response = await _elastic.ClusterHealthAsync(
+                new ClusterHealthRequest
+                {
+                    WaitForStatus = WaitForStatus.Yellow
+                });
+
+            if (response.TimedOut || !response.IsValid)
+            {
+                _logger.LogInformation("Elastic Search server doesn't seem to be available");
+                return _configuration.GetValue<int>("intervalMs"); // wait before re-polling
+            }
+
 
             // Ensure the Message Queue API is up, and the queue we want exists
             if (!await QueueReady(processQueue))
