@@ -33,7 +33,24 @@ namespace process.FileProcessors
 
             using (var tr = File.OpenText(filepath))
             {
-                var csv = new CsvParser(tr);
+                CsvParser csv;
+
+                if (_configuration.GetValue<bool>("readWholeFiles"))
+                {
+                    var fileContents = await tr.ReadToEndAsync();
+
+                    _logger.LogInformation("Finished reading file to memory");
+
+                    // tidy up early
+                    tr.Close();
+                    tr.Dispose();
+
+                    csv = new CsvParser(new StringReader(fileContents));
+                }
+                else
+                {
+                    csv = new CsvParser(tr);
+                }
 
                 // Parse the header row
                 var headers = await csv.ReadAsync();

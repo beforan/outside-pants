@@ -2,7 +2,7 @@
 
 - If on Windows, set the environment variable: `COMPOSE_CONVERT_WINDOWS_PATHS=1` so `/var/run/docker.sock` works.
 - `docker-compose up`
-- optionally `--scale process=<n>` where `<n>` is a sensible number
+- optionally `--scale process=<n>` where `<n>` is a sensible number (5 seems ok)
 - Ensure the logging stack is up before initiating processing!
     - logspout will crash out because logstash isn't up
     - sometimes elasticsearch needs some hand holding (restarting) to come up ok, not sure why...
