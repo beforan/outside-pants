@@ -29,23 +29,23 @@ const recursiveFileQueue = async dir => {
 
         const stat = await statAsync(fromPath);
         if (stat.isFile()) {
-            console.log("'%s' is a file.", fromPath);
+            //console.log("'%s' is a file.", fromPath);
 
             // move the file first
             await renameAsync(fromPath, toPath);
-            console.log(
-                "Moved file '%s' to '%s'.",
-                fromPath,
-                toPath
-            );
+            // console.log(
+            //     "Moved file '%s' to '%s'.",
+            //     fromPath,
+            //     toPath
+            // );
 
             // then queue it
             const response = await sendMessageAsync({ qname: processQueue, message: toPath });
-            if (response) console.log("Message sent. ID:", response);
+            // if (response) console.log("Message sent. ID:", response);
         } else if (stat.isDirectory()) {
-            console.log("'%s' is a directory.", fromPath);
-            if (paths.ignore.includes(file))
-                console.log(`'${file}' is on the ignore list, skipping`);
+            // console.log("'%s' is a directory.", fromPath);
+            if (paths.ignore.includes(file)) ;
+                // console.log(`'${file}' is on the ignore list, skipping`);
             else await recursiveFileQueue(fromPath);
             // TODO  delete the directory? or just leave it...
         }
