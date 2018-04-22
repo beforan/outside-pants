@@ -61,7 +61,6 @@ namespace process
             });
 
             services.AddTransient<IRedisQueueService, RedisQueueService>();
-            services.AddTransient<IElasticService, ElasticService>();
             services.AddScoped(s => new ElasticClient(
                 new ConnectionSettings(
                     new Uri(Configuration["es:host"]))

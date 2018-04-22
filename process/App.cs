@@ -55,6 +55,8 @@ namespace process
 
         public async Task Run()
         {
+            string messageId = null; // useful to have in scope here so we can use it in exception catching
+
             _logger.LogDebug("App.Run");
 
             var processQueue = _configuration["rsmq:queueName"];
@@ -71,6 +73,8 @@ namespace process
 
                 if (!string.IsNullOrWhiteSpace(message.Id))
                 {
+                    messageId = message.Id;
+
                     _logger.LogInformation($"Message received: {message.Id}");
 
                     // process it
@@ -87,18 +91,26 @@ namespace process
                         _logger.LogInformation($"unsupported file type detected: {message.Message}");
 
                         Utils.MoveFile(PathTypes.Queued, PathTypes.BadType, message.Message, _logger);
-
-                        // TODO delete message
                     }
                     else
                     {
                         // TODO really processors should work on streams
                         // so the ES bit is in App, and not recreated by every processor?
+                        // but no time for that yet
                         await _fileProcessor.Process(message.Message);
-
-                        // TODO delete message when done
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+            }
+
+            // try and delete the message (if any) regardless of the outcome above
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(messageId))
+                    await _redis.DeleteMessage(processQueue, messageId);
             }
             catch (Exception e)
             {
@@ -107,3 +119,4 @@ namespace process
         }
     }
 }
+

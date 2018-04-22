@@ -8,5 +8,6 @@ namespace process.Services
     {
         Task<IList<string>> ListQueues();
         Task<ReceiveMessageResponseModel> ReceiveMessage(string queue);
+        Task DeleteMessage(string queue, string messageId);
     }
 }

@@ -68,5 +68,25 @@ namespace process.Services
             return JsonConvert.DeserializeObject<ReceiveMessageResponseModel>(
                 await response.Content.ReadAsStringAsync());
         }
+
+        public async Task DeleteMessage(string queue, string messageId)
+        {
+            var uriBuilder = new UriBuilder(
+                new Uri(_client.BaseAddress,
+                $"{_configuration["rsmq:messages"]}/{queue}/{messageId}"));
+
+            var response = await _client.SendAsync(
+                new HttpRequestMessage(HttpMethod.Delete, uriBuilder.Uri));
+
+            if (!response.IsSuccessStatusCode) throw new HttpRequestException(
+                 JsonConvert.SerializeObject(new
+                 {
+                     Message = "Request to the Message Queue API failed.",
+                     Status = response.StatusCode,
+                     Content = await response.Content.ReadAsStringAsync()
+                 }));
+
+            return;
+        }
     }
 }
