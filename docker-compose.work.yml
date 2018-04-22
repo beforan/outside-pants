@@ -1,0 +1,11 @@
+version: '3'
+services:
+  enqueue:
+    volumes:
+      - c:/pants-data:/var/work
+  process:
+    volumes:
+      - c:/pants-data:/var/work
+  elasticsearch:
+    volumes:
+      - d:/pants/es:/usr/share/elasticsearch/data

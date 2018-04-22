@@ -52,7 +52,7 @@ services:
       - logstash
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/logs:/var/log
+      # - ./data/logs:/var/log
   logstash:
     image: docker.elastic.co/logstash/logstash:6.2.4
     environment:
