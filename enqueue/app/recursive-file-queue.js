@@ -42,15 +42,15 @@ const recursiveFileQueue = async dir => {
 
             // move the file first
             await renameAsync(fromPath, toPath);
-            console.log(
-                "Moved file '%s' to '%s'.",
-                fromPath,
-                toPath
-            );
+            // console.log(
+            //     "Moved file '%s' to '%s'.",
+            //     fromPath,
+            //     toPath
+            // );
 
             // then queue it
             const response = await sendMessageAsync({ qname: processQueue, message: toPath });
-            if (response) console.log("Message sent. ID:", response);
+            // if (response) console.log("Message sent. ID:", response);
         } else if (stat.isDirectory()) {
             // console.log("'%s' is a directory.", fromPath);
             if (paths.ignore.includes(file))

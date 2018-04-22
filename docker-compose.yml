@@ -45,18 +45,18 @@ services:
   logspout:
     build: ./logspout
     environment:
-      # ROUTE_URIS: logstash+tcp://logstash:5001
-      ROUTE_URIS: file://filename.log
+      ROUTE_URIS: logstash://logstash:5001
+      # ROUTE_URIS: file://filename.log
       LOGSPOUT: ignore
-    # links:
-      # - logstash
+    links:
+      - logstash
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/logs:/var/log
-  # logstash:
-  #   image: docker.elastic.co/logstash/logstash:6.2.4
-  #   environment:
-  #     LOGSPOUT: ignore
-  #   volumes:
-  #     # - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
-  #     - ./logstash/:/usr/share/logstash/pipeline/
+  logstash:
+    image: docker.elastic.co/logstash/logstash:6.2.4
+    environment:
+      LOGSPOUT: ignore
+    volumes:
+      # - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/:/usr/share/logstash/pipeline/
