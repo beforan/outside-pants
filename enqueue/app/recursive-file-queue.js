@@ -13,7 +13,7 @@ const { processQueue, paths } = require('./const');
 
 // queue files in subdirectories forever
 const recursiveFileQueue = async dir => {
-    const files = fs.readdirSync(dir); // TODO this would be way better async tbh
+    const files = await readdirASync(dir);
 
     // actually queue the files
     files.forEach(async file => {

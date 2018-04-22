@@ -22,5 +22,6 @@ module.exports = {
     deleteMessageAsync: promisify(rsmq.deleteMessage),
     statAsync: promisify(fs.stat),
     renameAsync: promisify(fs.rename),
-    mkdirpAsync: promisify(mkdirp)
+    mkdirpAsync: promisify(mkdirp),
+    readdirASync: promisify(fs.readdir)
 }
