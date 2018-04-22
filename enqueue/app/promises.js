@@ -23,5 +23,5 @@ module.exports = {
     statAsync: promisify(fs.stat),
     renameAsync: promisify(fs.rename),
     mkdirpAsync: promisify(mkdirp),
-    readdirASync: promisify(fs.readdir)
+    readdirAsync: promisify(fs.readdir)
 }
