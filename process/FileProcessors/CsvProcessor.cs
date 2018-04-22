@@ -85,6 +85,8 @@ namespace process.FileProcessors
                     }
                     catch (Exception e)
                     {
+                        _logger.LogError($"Exception at: row: {rowCount}, file: {filepath}");
+
                         _logger.LogError(e.Message);
 
                         Utils.MoveFile(PathTypes.Queued, PathTypes.Incomplete, filepath, _logger);
