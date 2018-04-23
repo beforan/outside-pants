@@ -4,7 +4,7 @@ module.exports = {
     paths: {
         base: "/var/work",
         queued: "/queued",
-        ignore: ["queued", "badtype", "processed"]
+        ignore: ["queued", "badtype", "complete", "incomplete"]
     },
     intervalMs: 10000
 }
