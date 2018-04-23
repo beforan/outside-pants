@@ -9,3 +9,6 @@ services:
   elasticsearch:
     volumes:
       - d:/pants/es:/usr/share/elasticsearch/data
+  logspout:
+    volumes:
+      - d:/pants/logs:/var/log
